@@ -1,18 +1,71 @@
-import { StyleSheet } from "react-native";
+import React, { useState } from "react";
+import {
+  Alert,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useAuth } from "../src/hooks/useAuth";
 
-import EditScreenInfo from "@/src/components/EditScreenInfo";
-import { Text, View } from "@/src/components/Themed";
+export default function LoginScreen() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { login } = useAuth();
 
-export default function TabOneScreen() {
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Por favor, completa todos los campos.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await login(email, password);
+      // La redirección ocurre automáticamente gracias al InitialLayout en _layout.tsx
+    } catch (error: any) {
+      Alert.alert(
+        "Error de Login",
+        error.message || "No se pudo iniciar sesión",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>BANCO XYZ</Text>
-      <View
-        style={styles.separator}
-        lightColor="#eee"
-        darkColor="rgba(255,255,255,0.1)"
+      <Text style={styles.title}>BancoXYZ</Text>
+      <Text style={styles.subtitle}>Banca Móvil</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Correo electrónico"
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+        keyboardType="email-address"
       />
-      <EditScreenInfo path="app/(tabs)/index.tsx" />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Contraseña"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleLogin}
+        disabled={isSubmitting}
+      >
+        <Text style={styles.buttonText}>
+          {isSubmitting ? "Iniciando sesión..." : "Ingresar"}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -20,17 +73,42 @@ export default function TabOneScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
     justifyContent: "center",
+    padding: 24,
+    backgroundColor: "#fff",
   },
   title: {
-    fontSize: 20,
+    fontSize: 32,
     fontWeight: "bold",
-    color: "#007AFF",
+    textAlign: "center",
+    color: "#1a1a1a",
   },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: "80%",
+  subtitle: {
+    fontSize: 18,
+    textAlign: "center",
+    color: "#666",
+    marginBottom: 40,
+  },
+  input: {
+    height: 50,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    fontSize: 16,
+  },
+  button: {
+    backgroundColor: "#0052cc",
+    height: 50,
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
