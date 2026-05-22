@@ -1,18 +1,23 @@
 import axios from "axios";
+import * as SecureStore from "expo-secure-store";
 
 export const authApi = axios.create({
   baseURL: "https://qf5k9fspl0.execute-api.us-east-1.amazonaws.com/default",
 });
 
-export const bankApi = axios.create();
+export const bankApi = axios.create({
+  baseURL: "https://2k0ic4z7s5.execute-api.us-east-1.amazonaws.com/default",
+});
 
-// Interceptor para inyectar el token dinámicamente en las peticiones de saldo y transferencias
+// Interceptor para inyectar dinámicamente el token real o el de pruebas
 bankApi.interceptors.request.use(async (config) => {
-  // Aquí se recupera el token (por ejemplo, de un contexto de autenticación o SecureStore)
-  const token = "fake-jwt-token"; // O el token real obtenido del login
+  try {
+    const token = await SecureStore.getItemAsync("userToken");
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    // El documento indica que se puede usar 'fake-jwt-token' en ambientes de prueba
+    config.headers.Authorization = `Bearer ${token || "fake-jwt-token"}`;
+  } catch (error) {
+    config.headers.Authorization = "Bearer fake-jwt-token";
   }
   return config;
 });
