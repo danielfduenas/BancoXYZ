@@ -13,13 +13,13 @@ export default function HomeLayout() {
         },
       }}
     >
-      <Stack.Screen name="index" options={{ title: "Inicio / Saldo" }} />
+      <Stack.Screen name="homeScreen" options={{ title: "Inicio / Saldo" }} />
       <Stack.Screen
-        name="transfer"
+        name="transferScreen"
         options={{ title: "Realizar Transferencia" }}
       />
       <Stack.Screen
-        name="history"
+        name="historyScreen"
         options={{ title: "Historial de Transferencias" }}
       />
     </Stack>

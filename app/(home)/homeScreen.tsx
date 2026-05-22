@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -17,8 +18,20 @@ interface BalanceData {
 
 export default function HomeScreen() {
   const { user, logout } = useAuth();
+  const router = useRouter();
   const [balance, setBalance] = useState<BalanceData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Función para manejar el cierre de sesión manual con redirección forzada
+  const handleLogout = async () => {
+    try {
+      console.log("Cerrando sesión y navegando al Login...");
+      await logout(); // Limpia los estados y el secureStore
+      router.replace("/"); // Fuerza al enrutador a mover la vista al Login raíz inmediatamente
+    } catch (error) {
+      Alert.alert("Error", "No se pudo cerrar la sesión correctamente.");
+    }
+  };
 
   const fetchBalance = useCallback(async () => {
     setIsLoading(true);
@@ -29,7 +42,7 @@ export default function HomeScreen() {
       const status = error.response?.status;
       if (status === 401) {
         Alert.alert("Sesión expirada", "Por favor, inicia sesión nuevamente.");
-        logout();
+        handleLogout();
       } else {
         Alert.alert("Error", "No se pudo obtener el saldo de la cuenta.");
       }
@@ -58,7 +71,7 @@ export default function HomeScreen() {
           <Text style={styles.welcomeText}>Hola,</Text>
           <Text style={styles.userName}>{user?.name || "Usuario"}</Text>
         </View>
-        <TouchableOpacity style={styles.logoutButton} onPress={logout}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutText}>Salir</Text>
         </TouchableOpacity>
       </View>
