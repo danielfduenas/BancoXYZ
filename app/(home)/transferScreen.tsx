@@ -13,17 +13,19 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { useAuth } from "../../src/hooks/useAuth"; // Importamos useAuth
 import { bankApi } from "../../src/services/api";
 
 export default function TransferScreen() {
   const router = useRouter();
+  // Extraemos balance, setBalance y setHistory del contexto global
+  const { balance, setBalance, setHistory } = useAuth();
+
   const [value, setValue] = useState("");
   const [document, setDocument] = useState("");
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // NUEVO: Estado para controlar si el usuario quiere programar a futuro
   const [isScheduled, setIsScheduled] = useState(false);
 
   const onDateChange = (event: any, selectedDate?: Date) => {
@@ -36,7 +38,9 @@ export default function TransferScreen() {
   };
 
   const handleTransfer = async () => {
-    const numericValue = parseFloat(value);
+    // Tratamiento de caracteres numéricos limpios para el cálculo matemático
+    const cleanValue = value.replace(",", ".");
+    const numericValue = parseFloat(cleanValue);
 
     // Validaciones de negocio básicas
     if (!value || !document) {
@@ -49,6 +53,15 @@ export default function TransferScreen() {
 
     if (isNaN(numericValue) || numericValue <= 0) {
       Alert.alert("Error", "Por favor, ingresa un monto válido mayor a cero.");
+      return;
+    }
+
+    // Bloqueo de seguridad local si excede los fondos disponibles
+    if (numericValue > balance) {
+      Alert.alert(
+        "Error",
+        "Fondos insuficientes para completar esta transferencia.",
+      );
       return;
     }
 
@@ -71,14 +84,16 @@ export default function TransferScreen() {
     setIsSubmitting(true);
 
     try {
-      const cleanValue = value.replace(",", ".");
-      const numericValue = parseFloat(cleanValue);
+      const formattedDate = format(
+        isScheduled ? finalTransferDate : new Date(),
+        "yyyy-MM-dd",
+      );
 
       const requestBody = {
         value: numericValue,
-        currency: "BRL", // Debe ser BRL estrictamente como pide el documento [cite: 82]
-        payeerDocument: document, // Asegura el espacio exacto aquí
-        transferDate: format(isScheduled ? date : new Date(), "yyyy-MM-dd"), //
+        currency: "BRL",
+        payeerDocument: document,
+        transferDate: formattedDate,
       };
 
       // LOG de inspección previo al envío
@@ -92,10 +107,36 @@ export default function TransferScreen() {
         requestBody,
       );
 
-      Alert.alert("Éxito", "Transferencia procesada con éxito.", [
-        { text: "OK", onPress: () => router.replace("/homeScreen" as any) },
-      ]);
       console.log("Status Code recibido:", response.status);
+
+      // Modificaciones locales reactivas si la petición es exitosa
+      // 1. Reducir el balance local de forma síncrona
+      setBalance((prevBalance) => prevBalance - numericValue);
+
+      // 2. Insertar el nuevo movimiento simulado al tope de la lista del historial
+      setHistory((prevHistory) => [
+        {
+          value: numericValue,
+          date: formattedDate,
+          currency: "BRL",
+          payeer: {
+            document: document,
+            name: "Transferencia Realizada", // Etiqueta identificadora local
+          },
+        },
+        ...prevHistory,
+      ]);
+
+      Alert.alert("Éxito", "Transferencia procesada con éxito.", [
+        {
+          text: "OK",
+          onPress: () => {
+            setValue("");
+            setDocument("");
+            router.replace("/homeScreen" as any);
+          },
+        },
+      ]);
     } catch (error: any) {
       // LOG de inspección en caso de error
       if (error.response) {
@@ -135,7 +176,7 @@ export default function TransferScreen() {
         keyboardType="numeric"
       />
 
-      {/* NUEVO: Fila del Switch para activar/desactivar la programación */}
+      {/* Fila del Switch para activar/desactivar la programación */}
       <View style={styles.switchContainer}>
         <Text style={styles.switchLabel}>
           ¿Deseas programar esta transferencia para el futuro?
@@ -144,7 +185,7 @@ export default function TransferScreen() {
           value={isScheduled}
           onValueChange={(newValue) => {
             setIsScheduled(newValue);
-            if (newValue) setDate(new Date()); // Resetea a hoy si se activa
+            if (newValue) setDate(new Date());
           }}
           trackColor={{ false: "#767577", true: "#a5c5f5" }}
           thumbColor={isScheduled ? "#0052cc" : "#f4f3f4"}
