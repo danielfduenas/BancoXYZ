@@ -1,4 +1,3 @@
-// app/(home)/historyScreen.tsx
 import { format, parseISO } from "date-fns";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -10,6 +9,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { useAuth } from "../../src/hooks/useAuth"; // Importamos useAuth
 import { bankApi } from "../../src/services/api";
 
 interface Payeer {
@@ -25,71 +25,77 @@ interface TransferItem {
 }
 
 export default function HistoryScreen() {
-  const [transfers, setTransfers] = useState<TransferItem[]>([]);
+  const { history, setHistory } = useAuth();
   const [filteredTransfers, setFilteredTransfers] = useState<TransferItem[]>(
     [],
   );
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Estados independientes para cada filtro requerido
+  // Filtros de búsqueda
   const [searchName, setSearchName] = useState("");
   const [searchValue, setSearchValue] = useState("");
   const [searchDate, setSearchDate] = useState("");
 
-  // 1. Obtener el historial desde la API del BancoXYZ
+  // 1. Obtener el historial desde la API (Controlado de forma segura)
   const fetchTransferList = useCallback(async () => {
+    // Si el contexto global ya tiene datos (por ejemplo, de una carga previa),
+    // simplemente los usamos y evitamos encender el loader o llamar a la API
+    if (history.length > 0) {
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const response = await bankApi.get(
         "https://n0qaa2fx3c.execute-api.us-east-1.amazonaws.com/default/transferList",
       );
-
-      // Validar si la respuesta viene empaquetada o es un arreglo directo
       const data = Array.isArray(response.data) ? response.data : [];
-      setTransfers(data);
-      setFilteredTransfers(data);
+      setHistory(data);
     } catch (error: any) {
       Alert.alert("Error", "No se pudo cargar el historial de transferencias.");
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Ahora sí garantizamos que siempre se apague correctamente
     }
-  }, []);
+    // 💡 Quitamos 'history' de las dependencias para evitar re-disparos infinitos al mutar el estado
+  }, [setHistory]);
 
   useEffect(() => {
     fetchTransferList();
   }, [fetchTransferList]);
 
-  // 2. Lógica de filtrado combinada (Nombre, Monto y Fecha)
+  // 2. Lógica de filtrado combinada (Se mantiene igual, escuchando a 'history')
   useEffect(() => {
-    let result = transfers;
+    let result = history;
 
-    // Filtrar por Nombre del Destinatario
     if (searchName.trim() !== "") {
       result = result.filter((item) =>
         item.payeer?.name?.toLowerCase().includes(searchName.toLowerCase()),
       );
     }
 
-    // Filtrar por Monto (Mapeo numérico o string coincidente)
     if (searchValue.trim() !== "") {
       result = result.filter((item) =>
         item.value.toString().includes(searchValue),
       );
     }
 
-    // Filtrar por Fecha (Formato original AAAA-MM-DD o visual DD/MM/AAAA)
     if (searchDate.trim() !== "") {
       result = result.filter((item) => {
-        const formattedItemDate = format(parseISO(item.date), "dd/MM/yyyy");
-        return (
-          item.date.includes(searchDate) ||
-          formattedItemDate.includes(searchDate)
-        );
+        try {
+          const formattedItemDate = format(parseISO(item.date), "dd/MM/yyyy");
+          return (
+            item.date.includes(searchDate) ||
+            formattedItemDate.includes(searchDate)
+          );
+        } catch {
+          return item.date.includes(searchDate);
+        }
       });
     }
 
     setFilteredTransfers(result);
-  }, [searchName, searchValue, searchDate, transfers]);
+  }, [searchName, searchValue, searchDate, history]);
 
   // Función para dar formato de moneda limpio
   const formatCurrency = (value: number, currencyCode: string) => {
@@ -243,7 +249,7 @@ const styles = StyleSheet.create({
   transferValue: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#de350b", // Tono rojizo representativo de egreso/gasto
+    color: "#de350b",
   },
   cardFooter: {
     flexDirection: "row",
