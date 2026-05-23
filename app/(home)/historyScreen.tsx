@@ -1,4 +1,5 @@
 // app/(home)/historyScreen.tsx
+import { format, parseISO } from "date-fns";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -57,6 +58,38 @@ export default function HistoryScreen() {
   useEffect(() => {
     fetchTransferList();
   }, [fetchTransferList]);
+
+  // 2. Lógica de filtrado combinada (Nombre, Monto y Fecha)
+  useEffect(() => {
+    let result = transfers;
+
+    // Filtrar por Nombre del Destinatario
+    if (searchName.trim() !== "") {
+      result = result.filter((item) =>
+        item.payeer?.name?.toLowerCase().includes(searchName.toLowerCase()),
+      );
+    }
+
+    // Filtrar por Monto (Mapeo numérico o string coincidente)
+    if (searchValue.trim() !== "") {
+      result = result.filter((item) =>
+        item.value.toString().includes(searchValue),
+      );
+    }
+
+    // Filtrar por Fecha (Formato original AAAA-MM-DD o visual DD/MM/AAAA)
+    if (searchDate.trim() !== "") {
+      result = result.filter((item) => {
+        const formattedItemDate = format(parseISO(item.date), "dd/MM/yyyy");
+        return (
+          item.date.includes(searchDate) ||
+          formattedItemDate.includes(searchDate)
+        );
+      });
+    }
+
+    setFilteredTransfers(result);
+  }, [searchName, searchValue, searchDate, transfers]);
 
   const renderItem = ({ item }: { item: TransferItem }) => (
     <View style={styles.card}></View>
