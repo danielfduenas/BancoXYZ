@@ -18,7 +18,7 @@ interface BalanceData {
 
 export default function HomeScreen() {
   const { user, logout } = useAuth();
-  const router = useRouter();
+  const router = useRouter(); // Instancia del enrutador
   const [balance, setBalance] = useState<BalanceData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -27,7 +27,9 @@ export default function HomeScreen() {
     try {
       console.log("Cerrando sesión y navegando al Login...");
       await logout(); // Limpia los estados y el secureStore
-      router.replace("/"); // Fuerza al enrutador a mover la vista al Login raíz inmediatamente
+      setTimeout(() => {
+        router.replace("/"); // Fuerza al enrutador a mover la vista al Login raíz inmediatamente
+      }, 0);
     } catch (error) {
       Alert.alert("Error", "No se pudo cerrar la sesión correctamente.");
     }
@@ -39,17 +41,15 @@ export default function HomeScreen() {
       const response = await bankApi.get("/balance");
       setBalance(response.data);
     } catch (error: any) {
-      const status = error.response?.status;
-      if (status === 401) {
-        Alert.alert("Sesión expirada", "Por favor, inicia sesión nuevamente.");
+      if (error.response?.status === 401) {
         handleLogout();
       } else {
-        Alert.alert("Error", "No se pudo obtener el saldo de la cuenta.");
+        Alert.alert("Error", "No se pudo obtener el saldo.");
       }
     } finally {
       setIsLoading(false);
     }
-  }, [logout]);
+  }, []);
 
   useEffect(() => {
     fetchBalance();
@@ -65,7 +65,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Encabezado de Bienvenida */}
+      {/* Encabezado */}
       <View style={styles.header}>
         <View>
           <Text style={styles.welcomeText}>Hola,</Text>
@@ -90,14 +90,24 @@ export default function HomeScreen() {
         )}
       </View>
 
-      {/* Acciones Rápidas sugeridas para cumplir el flujo */}
+      {/* Menú de Acciones Rápidas Funcionales */}
       <Text style={styles.sectionTitle}>Acciones rápidas</Text>
       <View style={styles.actionsContainer}>
-        <View style={styles.placeholderAction}>
-          <Text style={styles.actionPlaceholderText}>
-            Las opciones de transferencia irán en las pestañas/menú del Tab.
-          </Text>
-        </View>
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={() => router.push("/transferScreen" as any)}
+        >
+          <Text style={styles.actionIcon}>💸</Text>
+          <Text style={styles.actionText}>Enviar Dinero</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.actionButton, styles.actionButtonSecondary]}
+          onPress={() => router.push("/historyScreen" as any)}
+        >
+          <Text style={styles.actionIcon}>📊</Text>
+          <Text style={styles.actionText}>Ver Historial</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -108,13 +118,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f4f6f9",
     padding: 24,
-    paddingTop: 60,
+    paddingTop: 40,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 32,
+    marginBottom: 24,
   },
   welcomeText: {
     fontSize: 16,
@@ -176,18 +186,31 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   actionsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  actionButton: {
+    flex: 1,
     backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
+    alignItems: "center",
+    marginRight: 8,
     borderWidth: 1,
     borderColor: "#e0e0e0",
+    elevation: 1,
   },
-  placeholderAction: {
-    padding: 12,
+  actionButtonSecondary: {
+    marginRight: 0,
+    marginLeft: 8,
   },
-  actionPlaceholderText: {
-    color: "#666",
-    textAlign: "center",
-    fontStyle: "italic",
+  actionIcon: {
+    fontSize: 24,
+    marginBottom: 8,
+  },
+  actionText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#0052cc",
   },
 });
