@@ -91,8 +91,38 @@ export default function HistoryScreen() {
     setFilteredTransfers(result);
   }, [searchName, searchValue, searchDate, transfers]);
 
+  // Función para dar formato de moneda limpio
+  const formatCurrency = (value: number, currencyCode: string) => {
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: currencyCode,
+    }).format(value);
+  };
+
+  // Función para dar formato visual legible a las fechas
+  const formatDateStr = (dateStr: string) => {
+    try {
+      return format(parseISO(dateStr), "dd/MM/yyyy");
+    } catch {
+      return dateStr;
+    }
+  };
+
   const renderItem = ({ item }: { item: TransferItem }) => (
-    <View style={styles.card}></View>
+    <View style={styles.card}>
+      <View style={styles.cardHeader}>
+        <Text style={styles.destinatarioName}>
+          {item.payeer?.name || "Destinatario Desconocido"}
+        </Text>
+        <Text style={styles.transferValue}>
+          {formatCurrency(item.value, item.currency)}
+        </Text>
+      </View>
+      <View style={styles.cardFooter}>
+        <Text style={styles.documentText}>Doc: {item.payeer?.document}</Text>
+        <Text style={styles.dateText}>{formatDateStr(item.date)}</Text>
+      </View>
+    </View>
   );
 
   return (
