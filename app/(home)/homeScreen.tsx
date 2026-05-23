@@ -11,24 +11,21 @@ import {
 import { useAuth } from "../../src/hooks/useAuth";
 import { bankApi } from "../../src/services/api";
 
-interface BalanceData {
-  currency: string;
-  accountBalance: number;
-}
-
 export default function HomeScreen() {
-  const { user, logout } = useAuth();
-  const router = useRouter(); // Instancia del enrutador
-  const [balance, setBalance] = useState<BalanceData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Extraemos balance y setBalance desde el hook de autenticación global
+  const { user, logout, balance, setBalance } = useAuth();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  // Control de bandera para evitar bucles de peticiones repetitivas
+  const [hasFetched, setHasFetched] = useState(false);
 
   // Función para manejar el cierre de sesión manual con redirección forzada
   const handleLogout = async () => {
     try {
       console.log("Cerrando sesión y navegando al Login...");
-      await logout(); // Limpia los estados y el secureStore
+      await logout();
       setTimeout(() => {
-        router.replace("/"); // Fuerza al enrutador a mover la vista al Login raíz inmediatamente
+        router.replace("/");
       }, 0);
     } catch (error) {
       Alert.alert("Error", "No se pudo cerrar la sesión correctamente.");
@@ -36,10 +33,15 @@ export default function HomeScreen() {
   };
 
   const fetchBalance = useCallback(async () => {
+    // Si ya tenemos datos o el saldo ya se inicializó, omitimos la llamada HTTP
+    if (hasFetched || balance !== 0) return;
+
     setIsLoading(true);
     try {
       const response = await bankApi.get("/balance");
-      setBalance(response.data);
+      // Inyectamos el valor inicial de la API al estado compartido del contexto
+      setBalance(response.data.accountBalance);
+      setHasFetched(true);
     } catch (error: any) {
       if (error.response?.status === 401) {
         handleLogout();
@@ -49,14 +51,15 @@ export default function HomeScreen() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [balance, hasFetched, logout, setBalance]);
 
   useEffect(() => {
     fetchBalance();
   }, [fetchBalance]);
 
   // Función auxiliar para dar formato de moneda limpio (Ej: R$ 1.500,50)
-  const formatCurrency = (value: number, currencyCode: string) => {
+  // Ahora forzamos "BRL" por defecto como indica el negocio de la API
+  const formatCurrency = (value: number, currencyCode: string = "BRL") => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: currencyCode,
@@ -81,12 +84,9 @@ export default function HomeScreen() {
         <Text style={styles.balanceLabel}>Saldo disponible</Text>
         {isLoading ? (
           <ActivityIndicator size="small" color="#fff" style={styles.loader} />
-        ) : balance ? (
-          <Text style={styles.balanceAmount}>
-            {formatCurrency(balance.accountBalance, balance.currency)}
-          </Text>
         ) : (
-          <Text style={styles.balanceError}>--</Text>
+          /* Lee directamente la variable del contexto global reactivo */
+          <Text style={styles.balanceAmount}>{formatCurrency(balance)}</Text>
         )}
       </View>
 
@@ -173,11 +173,6 @@ const styles = StyleSheet.create({
   loader: {
     alignSelf: "flex-start",
     marginTop: 16,
-  },
-  balanceError: {
-    color: "#fff",
-    fontSize: 24,
-    marginTop: 8,
   },
   sectionTitle: {
     fontSize: 18,
