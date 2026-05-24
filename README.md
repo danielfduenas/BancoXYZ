@@ -8,12 +8,11 @@
 Es una aplicación móvil transaccional de banca digital desarrollada con **React Native** y **Expo Router**. La plataforma permite a los usuarios autenticarse de forma segura, visualizar su saldo disponible en tiempo real, realizar transferencias inmediatas o programadas, e inspeccionar su historial de movimientos mediante un sistema avanzado de filtrado cruzado.
 
 ```text
-██████╗  █████╗ ███╗   ██╗ ██████╗ ██████╗ L █ L   L █ L   L █ L
-██╔══██╗██╔══██╗████╗  ██║██╔════╝██╔═══██╗  \ \     \ \     \ \
-██████╔╝███████║██╔██╗ ██║██║     ██║   ██║   \ \     \ \     \ \
-██╔══██╗██╔══██║██║╚██╗██║██║     ██║   ██║    \ \     \ \     \ \
-██████╔╝██║  ██║██║ ╚████║╚██████╗╚██████╔╝   (_X_)   (_Y_)   (_Z_)
-╚══════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═════╝  [#a5c5f5][#0052cc][#de350b]
+  ____    _    _   _  ____ ___     __  ____     __ ____
+ | __ )  / \  | \ | |/ ___/ _ \    \ \/ /\ \   / /|_  /
+ |  _ \ / _ \ |  \| | |  | | | |    \  /  \ \ / /  / /
+ | |_) / ___ \| |\  | |__| |_| |    /  \   \ V /  / /__
+ |____/_/   \_\_| \_|\____\___/   /_/\_\   \_/  /_____|
  ─────────────────── BANCO XYZ ───────────────────
 ```
 
@@ -66,7 +65,7 @@ Sigue estos pasos para clonar y ejecutar el entorno de desarrollo de forma local
 1. **Clonar el repositorio:**
 
    ```bash
-   git clone [https://github.com/danielfduenas/BancoXYZ](https://github.com/danielfduenas/BancoXYZ)
+   git clone [https://github.com/danielfduenas/BancoXYZ.git](https://github.com/danielfduenas/BancoXYZ.git)
    cd BancoXYZ
    ```
 
@@ -87,7 +86,7 @@ Sigue estos pasos para clonar y ejecutar el entorno de desarrollo de forma local
    npx expo start
    ```
 
-> **Tip de Ejecución:** Puedes presionar la tecla `a` en tu terminal para abrir el emulador de Android, `i` para el simulador de iOS, o escanear el código QR con la app de Expo Go en tu dispositivo móvil real.
+> **Tip de Ejecución:** Puedes presionar la tecla `a` en tu terminal para abrir el emulador de Android, `i` para el simulador de iOS, o escanear el código QR con la app de Expo Go (SDK 55) en tu dispositivo móvil real.
 
 ---
 
