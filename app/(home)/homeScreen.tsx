@@ -100,7 +100,7 @@ export default function HomeScreen() {
           style={styles.actionButton}
           onPress={() => router.push("/transferScreen" as any)}
         >
-          <Text style={styles.actionIcon}>💸</Text>
+          <Text style={styles.actionIcon}></Text>
           <Text style={styles.actionText}>Enviar Dinero</Text>
         </TouchableOpacity>
 
@@ -108,7 +108,7 @@ export default function HomeScreen() {
           style={[styles.actionButton, styles.actionButtonSecondary]}
           onPress={() => router.push("/historyScreen" as any)}
         >
-          <Text style={styles.actionIcon}>📊</Text>
+          <Text style={styles.actionIcon}></Text>
           <Text style={styles.actionText}>Ver Historial</Text>
         </TouchableOpacity>
       </View>

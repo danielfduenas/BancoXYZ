@@ -1,3 +1,4 @@
+import LogoXYZ from "@/src/components/LogoXYZwhite";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, View } from "react-native";
@@ -16,6 +17,11 @@ export default function HomeLayout() {
           headerTitleStyle: {
             fontWeight: "bold",
           },
+          headerRight: () => (
+            <View style={styles.headerLogoContainer}>
+              <LogoXYZ height={50} width={200} />
+            </View>
+          ),
         }}
       >
         <Stack.Screen name="homeScreen" options={{ title: "Inicio / Saldo" }} />
@@ -36,5 +42,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#0052cc",
+  },
+  headerLogoContainer: {
+    width: 160,
+    height: 44,
+    justifyContent: "center",
+    overflow: "hidden",
+    position: "absolute",
+    left: "50%",
+    transform: [{ translateX: -130 }],
   },
 });
