@@ -78,7 +78,7 @@ Sigue estos pasos para clonar y ejecutar el entorno de desarrollo de forma local
 3. **Vincular utilidades nativas de Expo:**
 
    ```bash
-   npx expo install expo-secure-store @react-native-community/datetimepicker
+   npx expo install expo-secure-store @react-native-community/datetimepicker react-native-svg
    ```
 
 4. **Iniciar el servidor de Metro:**
