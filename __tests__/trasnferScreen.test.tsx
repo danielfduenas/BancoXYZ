@@ -1,16 +1,20 @@
-// __tests__/transferScreen.test.tsx
 import {
-    fireEvent,
-    render,
-    screen,
-    waitFor,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
 } from "@testing-library/react-native";
 import React from "react";
 import { Alert } from "react-native";
+import { act } from "react-test-renderer";
 import TransferScreen from "../app/(home)/transferScreen";
+import { useAuth } from "../src/hooks/useAuth";
 import { bankApi } from "../src/services/api";
 
-// 1. Simular el cliente HTTP de la API
+// 1. Simular el hook de autenticación global
+jest.mock("../src/hooks/useAuth");
+
+// 2. Simular el cliente HTTP de la API
 jest.mock("../src/services/api", () => ({
   bankApi: {
     post: jest.fn(),
@@ -29,8 +33,17 @@ jest.mock("expo-router", () => ({
 const alertSpy = jest.spyOn(Alert, "alert");
 
 describe("Pruebas Unitarias - TransferScreen (Formulario de Envíos)", () => {
+  const mockSetBalance = jest.fn();
+  const mockSetHistory = jest.fn();
+
   beforeEach(() => {
     jest.clearAllMocks();
+    (useAuth as jest.Mock).mockReturnValue({
+      balance: 1000,
+      setBalance: mockSetBalance,
+      history: [],
+      setHistory: mockSetHistory,
+    });
   });
 
   it("debe renderizar todos los campos iniciales obligatorios y el botón de envío inmediato", () => {
@@ -107,7 +120,9 @@ describe("Pruebas Unitarias - TransferScreen (Formulario de Envíos)", () => {
     // Simular el clic en el botón 'OK' de la alerta para verificar que redirige al homeScreen
     const alertActions = alertSpy.mock.calls[0][2];
     if (alertActions && alertActions[0]?.onPress) {
-      alertActions[0].onPress();
+      act(() => {
+        alertActions[0].onPress();
+      });
       expect(mockReplace).toHaveBeenCalledWith("/homeScreen");
     }
   });

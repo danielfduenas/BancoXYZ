@@ -151,7 +151,7 @@ export default function HistoryScreen() {
 
         <TextInput
           style={styles.filterInput}
-          placeholder=" Buscar por nombre..."
+          placeholder="Buscar por nombre..."
           value={searchName}
           onChangeText={setSearchName}
         />
@@ -183,8 +183,8 @@ export default function HistoryScreen() {
           >
             <Text style={styles.dateSelectorText}>
               {selectedDate
-                ? ` ${format(selectedDate, "dd/MM/yyyy")}`
-                : " Filtrar por fecha"}
+                ? format(selectedDate, "dd/MM/yyyy")
+                : "Filtrar por fecha"}
             </Text>
           </TouchableOpacity>
 
@@ -203,6 +203,7 @@ export default function HistoryScreen() {
       {/* Control Nativo del DatePicker */}
       {showDatePicker && (
         <DateTimePicker
+          testID="history-date-picker"
           value={selectedDate || new Date()}
           mode="date"
           display={Platform.OS === "ios" ? "spinner" : "default"}

@@ -1,15 +1,14 @@
 import {
-    fireEvent,
-    render,
-    screen,
-    waitFor,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
 } from "@testing-library/react-native";
 import React from "react";
 import HomeScreen from "../app/(home)/homeScreen";
 import { useAuth } from "../src/hooks/useAuth";
 import { bankApi } from "../src/services/api";
 
-// 1. Simular el hook de autenticación
 jest.mock("../src/hooks/useAuth");
 
 // 2. Simular el cliente HTTP de la API del banco
@@ -31,13 +30,32 @@ describe("Pruebas Unitarias - HomeScreen (Saldo y Flujos)", () => {
   const mockLogout = jest.fn();
   const mockUser = { id: 1, name: "Gabriel Topaz", email: "gabriel@topaz.com" };
 
+  const renderWithAuth = (ui: React.ReactElement) => {
+    const useAuthMock = useAuth as jest.Mock;
+
+    const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+      const [balance, setBalance] = React.useState(0);
+
+      useAuthMock.mockImplementation(() => ({
+        user: mockUser,
+        logout: mockLogout,
+        balance,
+        setBalance,
+        history: [],
+        setHistory: jest.fn(),
+        token: null,
+        isLoading: false,
+        login: jest.fn(),
+      }));
+
+      return <>{children}</>;
+    };
+
+    return render(ui, { wrapper: Wrapper });
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
-    // Inyectar valores por defecto para el hook useAuth en cada test
-    (useAuth as jest.Mock).mockReturnValue({
-      user: mockUser,
-      logout: mockLogout,
-    });
   });
 
   it("debe mostrar el saludo al usuario y renderizar el saldo correctamente en moneda local", async () => {
@@ -50,7 +68,7 @@ describe("Pruebas Unitarias - HomeScreen (Saldo y Flujos)", () => {
     };
     (bankApi.get as jest.Mock).mockResolvedValue(mockBalanceResponse);
 
-    render(<HomeScreen />);
+    renderWithAuth(<HomeScreen />);
 
     // Verificar que salude al usuario autenticado usando su nombre
     expect(screen.getByText("Gabriel Topaz")).toBeTruthy();
@@ -68,7 +86,7 @@ describe("Pruebas Unitarias - HomeScreen (Saldo y Flujos)", () => {
       data: { currency: "BRL", accountBalance: 0 },
     });
 
-    render(<HomeScreen />);
+    renderWithAuth(<HomeScreen />);
 
     // Buscar el botón por su texto e interactuar con él
     const logoutButton = screen.getByText("Salir");
@@ -88,7 +106,7 @@ describe("Pruebas Unitarias - HomeScreen (Saldo y Flujos)", () => {
     };
     (bankApi.get as jest.Mock).mockRejectedValue(mockError401);
 
-    render(<HomeScreen />);
+    renderWithAuth(<HomeScreen />);
 
     // El componente debe proteger al usuario cerrando la sesión automáticamente
     await waitFor(() => {
