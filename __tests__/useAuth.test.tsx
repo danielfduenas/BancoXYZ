@@ -14,6 +14,8 @@ jest.mock("expo-secure-store", () => ({
 jest.mock("../src/services/api", () => ({
   authApi: {
     post: jest.fn(),
+    get: jest.fn().mockResolvedValue({ data: { accountBalance: 0 } }),
+    defaults: { headers: { common: {} } },
   },
 }));
 
