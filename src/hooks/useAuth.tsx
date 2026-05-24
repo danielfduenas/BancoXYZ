@@ -39,30 +39,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
-  // Nuevos estados para simular persistencia en memoria durante la sesión
   const [balance, setBalance] = useState<number>(0);
   const [history, setHistory] = useState<TransferItem[]>([]);
 
-  // Cargar el token guardado al iniciar la app
+  // ✨ ACTUALIZADO: Cargar y VALIDAR la sesión al iniciar la app
   useEffect(() => {
-    const loadStorageData = async () => {
+    const loadAndValidateStorageData = async () => {
       try {
         const storedToken = await SecureStore.getItemAsync("userToken");
         const storedUser = await SecureStore.getItemAsync("userData");
 
         if (storedToken && storedUser) {
-          setToken(storedToken);
-          setUser(JSON.parse(storedUser));
+          // 1. Inyección temporal del token en Axios para la verificación
+          // (Ajusta 'authApi' según los headers compartidos)
+          authApi.defaults.headers.common["Authorization"] =
+            `Bearer ${storedToken}`;
+
+          try {
+            // 2. Petición rápida de verificación al servidor.
+            // Se usa /balance porque requiere token obligatorio y nos sirve como termómetro de validez.
+            const response = await authApi.get("/balance");
+
+            // Si el servidor responde con éxito, el token sigue vigente:
+            setToken(storedToken);
+            setUser(JSON.parse(storedUser));
+            setBalance(response.data.accountBalance); // Se precarga el saldo de una vez
+          } catch (apiError: any) {
+            // 3. Si el servidor dice que el token caducó (401), se limpia todo de inmediato
+            console.log(
+              "Token local expirado en el servidor, limpiando credenciales...",
+            );
+            await SecureStore.deleteItemAsync("userToken");
+            await SecureStore.deleteItemAsync("userData");
+            setToken(null);
+            setUser(null);
+          }
         }
       } catch (e) {
-        console.error("Error cargando datos de autenticación", e);
+        console.error(
+          "Error en el proceso de verificación de autenticación",
+          e,
+        );
       } finally {
-        setIsLoading(false);
+        setIsLoading(false); // Apagamos el splash screen / loader raíz
       }
     };
 
-    loadStorageData();
+    loadAndValidateStorageData();
   }, []);
 
   const login = async (email: string, password: string) => {
