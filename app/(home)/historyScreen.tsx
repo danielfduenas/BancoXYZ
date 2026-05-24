@@ -1,15 +1,18 @@
+import DateTimePicker from "@react-native-community/datetimepicker"; // ✨ NUEVO: Importamos el selector
 import { format, parseISO } from "date-fns";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
-import { useAuth } from "../../src/hooks/useAuth"; // Importamos useAuth
+import { useAuth } from "../../src/hooks/useAuth";
 import { bankApi } from "../../src/services/api";
 
 interface Payeer {
@@ -31,15 +34,14 @@ export default function HistoryScreen() {
   );
   const [isLoading, setIsLoading] = useState(false);
 
-  // Filtros de búsqueda
+  //  Filtros de búsqueda con Rangos de Montos y Fecha por Objeto Date
   const [searchName, setSearchName] = useState("");
-  const [searchValue, setSearchValue] = useState("");
-  const [searchDate, setSearchDate] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
-  // 1. Obtener el historial desde la API (Controlado de forma segura)
   const fetchTransferList = useCallback(async () => {
-    // Si el contexto global ya tiene datos (por ejemplo, de una carga previa),
-    // simplemente los usamos y evitamos encender el loader o llamar a la API
     if (history.length > 0) {
       setIsLoading(false);
       return;
@@ -55,49 +57,60 @@ export default function HistoryScreen() {
     } catch (error: any) {
       Alert.alert("Error", "No se pudo cargar el historial de transferencias.");
     } finally {
-      setIsLoading(false); // Ahora sí garantizamos que siempre se apague correctamente
+      setIsLoading(false);
     }
-    // 💡 Quitamos 'history' de las dependencias para evitar re-disparos infinitos al mutar el estado
   }, [setHistory]);
 
   useEffect(() => {
     fetchTransferList();
   }, [fetchTransferList]);
 
-  // 2. Lógica de filtrado combinada (Se mantiene igual, escuchando a 'history')
+  // Manejador del cambio de fecha en el Picker
+  const onDateChange = (event: any, date?: Date) => {
+    if (Platform.OS === "android") {
+      setShowDatePicker(false);
+    }
+    if (date) {
+      setSelectedDate(date);
+    }
+  };
+
+  // Lógica de filtrado con rangos matemáticos y fechas normalizadas
   useEffect(() => {
     let result = history;
 
+    // 1. Filtrar por Nombre del Destinatario
     if (searchName.trim() !== "") {
       result = result.filter((item) =>
         item.payeer?.name?.toLowerCase().includes(searchName.toLowerCase()),
       );
     }
 
-    if (searchValue.trim() !== "") {
-      result = result.filter((item) =>
-        item.value.toString().includes(searchValue),
-      );
+    // 2. Filtrar por Monto Mínimo
+    if (minPrice.trim() !== "") {
+      const min = parseFloat(minPrice.replace(",", "."));
+      if (!isNaN(min)) {
+        result = result.filter((item) => item.value >= min);
+      }
     }
 
-    if (searchDate.trim() !== "") {
-      result = result.filter((item) => {
-        try {
-          const formattedItemDate = format(parseISO(item.date), "dd/MM/yyyy");
-          return (
-            item.date.includes(searchDate) ||
-            formattedItemDate.includes(searchDate)
-          );
-        } catch {
-          return item.date.includes(searchDate);
-        }
-      });
+    // 3. Filtrar por Monto Máximo
+    if (maxPrice.trim() !== "") {
+      const max = parseFloat(maxPrice.replace(",", "."));
+      if (!isNaN(max)) {
+        result = result.filter((item) => item.value <= max);
+      }
+    }
+
+    // 4. Filtrar por Fecha exacta seleccionada en el DatePicker
+    if (selectedDate !== null) {
+      const targetDateStr = format(selectedDate, "yyyy-MM-dd"); // Formato estándar de tu API
+      result = result.filter((item) => item.date.includes(targetDateStr));
     }
 
     setFilteredTransfers(result);
-  }, [searchName, searchValue, searchDate, history]);
+  }, [searchName, minPrice, maxPrice, selectedDate, history]);
 
-  // Función para dar formato de moneda limpio
   const formatCurrency = (value: number, currencyCode: string) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -105,7 +118,6 @@ export default function HistoryScreen() {
     }).format(value);
   };
 
-  // Función para dar formato visual legible a las fechas
   const formatDateStr = (dateStr: string) => {
     try {
       return format(parseISO(dateStr), "dd/MM/yyyy");
@@ -117,7 +129,7 @@ export default function HistoryScreen() {
   const renderItem = ({ item }: { item: TransferItem }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <Text style={styles.destinatarioName}>
+        <Text style={styles.nameText}>
           {item.payeer?.name || "Destinatario Desconocido"}
         </Text>
         <Text style={styles.transferValue}>
@@ -133,31 +145,70 @@ export default function HistoryScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Contenedor de Filtros */}
+      {/* Contenedor de Filtros Avanzados */}
       <View style={styles.filterContainer}>
-        <Text style={styles.filterTitle}>Filtrar transferencias:</Text>
+        <Text style={styles.filterTitle}>Filtros Avanzados:</Text>
+
         <TextInput
           style={styles.filterInput}
-          placeholder="🔎 Buscar por nombre..."
+          placeholder=" Buscar por nombre..."
           value={searchName}
           onChangeText={setSearchName}
         />
+
+        {/* Fila de Rangos de Montos */}
         <View style={styles.rowFilters}>
           <TextInput
             style={[styles.filterInput, { flex: 1, marginRight: 8 }]}
-            placeholder="💰 Por monto..."
-            value={searchValue}
-            onChangeText={setSearchValue}
+            placeholder="Monto mínimo..."
+            value={minPrice}
+            onChangeText={setMinPrice}
             keyboardType="numeric"
           />
           <TextInput
             style={[styles.filterInput, { flex: 1 }]}
-            placeholder="📅 Por fecha (dd/mm/aaaa)..."
-            value={searchDate}
-            onChangeText={setSearchDate}
+            placeholder="Monto máximo..."
+            value={maxPrice}
+            onChangeText={setMaxPrice}
+            keyboardType="numeric"
           />
+
+          {/* Fila del Selector de Fecha Dinámico */}
+          <TouchableOpacity
+            style={[
+              styles.dateSelectorButton,
+              { flex: 3, marginRight: selectedDate ? 8 : 0 },
+            ]}
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Text style={styles.dateSelectorText}>
+              {selectedDate
+                ? ` ${format(selectedDate, "dd/MM/yyyy")}`
+                : " Filtrar por fecha"}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Botón condicional para eliminar el filtro de fecha */}
+          {selectedDate && (
+            <TouchableOpacity
+              style={styles.clearDateButton}
+              onPress={() => setSelectedDate(null)}
+            >
+              <Text style={styles.clearDateText}>Limpiar</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
+
+      {/* Control Nativo del DatePicker */}
+      {showDatePicker && (
+        <DateTimePicker
+          value={selectedDate || new Date()}
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={onDateChange}
+        />
+      )}
 
       {/* Listado de Resultados */}
       {isLoading ? (
@@ -172,7 +223,7 @@ export default function HistoryScreen() {
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
             <Text style={styles.emptyText}>
-              No se encontraron transferencias realizadas.
+              No se encontraron transferencias con los filtros aplicados.
             </Text>
           }
         />
@@ -207,10 +258,40 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     backgroundColor: "#fafafa",
     fontSize: 14,
+    color: "#1a1a1a",
   },
   rowFilters: {
     flexDirection: "row",
     justifyContent: "space-between",
+    marginBottom: 4,
+  },
+  dateSelectorButton: {
+    height: 40,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 6,
+    backgroundColor: "#fafafa",
+    justifyContent: "center",
+    paddingHorizontal: 12,
+    marginBottom: 4,
+    marginLeft: 8,
+  },
+  dateSelectorText: {
+    fontSize: 14,
+    color: "#555",
+  },
+  clearDateButton: {
+    flex: 1,
+    height: 40,
+    backgroundColor: "#ffebe6",
+    borderRadius: 6,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  clearDateText: {
+    color: "#de350b",
+    fontWeight: "600",
+    fontSize: 14,
   },
   centerLoader: {
     flex: 1,
@@ -240,7 +321,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 8,
   },
-  destinatarioName: {
+  nameText: {
     fontSize: 16,
     fontWeight: "bold",
     color: "#1a1a1a",
