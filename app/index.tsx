@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import LogoXYZ from "../src/components/LogoXYZ"; // Logo SVG
 import { useAuth } from "../src/hooks/useAuth";
 
 export default function LoginScreen() {
@@ -37,7 +38,10 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>BancoXYZ</Text>
+      <View style={styles.logoContainer}>
+        <LogoXYZ height={90} width="100%" />
+      </View>
+
       <Text style={styles.subtitle}>¡Bienvenido a tu Banca Móvil!</Text>
 
       <TextInput
@@ -77,14 +81,13 @@ const styles = StyleSheet.create({
     padding: 24,
     backgroundColor: "#fff",
   },
-  title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    textAlign: "center",
-    color: "#0052cc",
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 50,
+    paddingHorizontal: 20,
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 16,
     textAlign: "center",
     color: "#666",
     marginBottom: 40,
