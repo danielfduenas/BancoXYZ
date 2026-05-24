@@ -1,8 +1,8 @@
 import {
-    fireEvent,
-    render,
-    screen,
-    waitFor,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
 } from "@testing-library/react-native";
 import React from "react";
 import HistoryScreen from "../app/(home)/historyScreen";
@@ -80,7 +80,7 @@ describe("Pruebas Unitarias - HistoryScreen (Filtros Avanzados)", () => {
     expect(screen.getByText("Ana Silva")).toBeTruthy();
 
     // Interactuar con el filtro de nombre
-    const nameInput = screen.getByPlaceholderText("Buscar por nombre...");
+    const nameInput = screen.getByPlaceholderText("Buscar por nombre");
     fireEvent.changeText(nameInput, "Ana");
 
     // Deben filtrarse los elementos reactivamente
@@ -96,8 +96,8 @@ describe("Pruebas Unitarias - HistoryScreen (Filtros Avanzados)", () => {
 
     render(<HistoryScreen />);
 
-    const minInput = screen.getByPlaceholderText("Monto mínimo...");
-    const maxInput = screen.getByPlaceholderText("Monto máximo...");
+    const minInput = screen.getByPlaceholderText("mín.");
+    const maxInput = screen.getByPlaceholderText("máx.");
 
     // Aplicar rango entre 200 y 600 BRL
     fireEvent.changeText(minInput, "200");
@@ -117,7 +117,7 @@ describe("Pruebas Unitarias - HistoryScreen (Filtros Avanzados)", () => {
 
     render(<HistoryScreen />);
 
-    const minInput = screen.getByPlaceholderText("Monto mínimo...");
+    const minInput = screen.getByPlaceholderText("mín.");
     fireEvent.changeText(minInput, "99999"); // Monto absurdamente alto
 
     expect(
@@ -137,7 +137,7 @@ describe("Pruebas Unitarias - HistoryScreen (Filtros Avanzados)", () => {
 
     render(<HistoryScreen />);
 
-    const dateButton = screen.getByText("Filtrar por fecha");
+    const dateButton = screen.getByText("Buscar por fecha");
     fireEvent.press(dateButton);
 
     expect(screen.getByTestId("history-date-picker")).toBeTruthy();
