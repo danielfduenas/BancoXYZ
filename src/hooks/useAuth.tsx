@@ -23,12 +23,14 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   isLoading: boolean;
-  balance: number; // ✨ NUEVO: Saldo reactivo global
-  history: TransferItem[]; // ✨ NUEVO: Historial reactivo global
+  balance: number;
+  history: TransferItem[];
+  isBalanceLoaded: boolean; // Bandera para saber si el saldo ya se cargó alguna vez
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  setBalance: React.Dispatch<React.SetStateAction<number>>; // ✨ NUEVO: Setter de saldo
-  setHistory: React.Dispatch<React.SetStateAction<TransferItem[]>>; // ✨ NUEVO: Setter de historial
+  setBalance: React.Dispatch<React.SetStateAction<number>>;
+  setHistory: React.Dispatch<React.SetStateAction<TransferItem[]>>;
+  setIsBalanceLoaded: React.Dispatch<React.SetStateAction<boolean>>; // Setter de la bandera
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,7 +44,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [balance, setBalance] = useState<number>(0);
   const [history, setHistory] = useState<TransferItem[]>([]);
 
-  // ✨ ACTUALIZADO: Cargar y VALIDAR la sesión al iniciar la app
+  //  Control de carga inicial independiente del valor numérico
+  const [isBalanceLoaded, setIsBalanceLoaded] = useState<boolean>(false);
+
+  // Cargar y VALIDAR la sesión al iniciar la app
   useEffect(() => {
     const loadAndValidateStorageData = async () => {
       try {
@@ -64,6 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             setToken(storedToken);
             setUser(JSON.parse(storedUser));
             setBalance(response.data.accountBalance); // Se precarga el saldo de una vez
+            setIsBalanceLoaded(true); // Se cargó con éxito en el inicio
           } catch (apiError: any) {
             // 3. Si el servidor dice que el token caducó (401), se limpia todo de inmediato
             console.log(
@@ -97,6 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // Guardar en el estado
       setToken(resToken);
       setUser(resUser);
+      setIsBalanceLoaded(false); // Reseteamos al loguear para que el homeScreen descargue el saldo fresco
 
       // Persistir de forma segura en el dispositivo
       await SecureStore.setItemAsync("userToken", resToken);
@@ -113,6 +120,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setUser(null);
     setBalance(0); //  Limpia el saldo al cerrar sesión
     setHistory([]); //  Limpia el historial al cerrar sesión
+    setIsBalanceLoaded(false); // Limpiamos la bandera al cerrar sesión
     await SecureStore.deleteItemAsync("userToken");
     await SecureStore.deleteItemAsync("userData");
   };
@@ -125,10 +133,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         isLoading,
         balance,
         history,
+        isBalanceLoaded, // Compartimos la bandera
         login,
         logout,
         setBalance,
         setHistory,
+        setIsBalanceLoaded, // Compartimos el setter
       }}
     >
       {children}

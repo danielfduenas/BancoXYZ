@@ -1,4 +1,4 @@
-import DateTimePicker from "@react-native-community/datetimepicker"; // ✨ NUEVO: Importamos el selector
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { format, parseISO } from "date-fns";
 import React, { useCallback, useEffect, useState } from "react";
 import {

@@ -12,12 +12,17 @@ import { useAuth } from "../../src/hooks/useAuth";
 import { bankApi } from "../../src/services/api";
 
 export default function HomeScreen() {
-  // Extraemos balance y setBalance desde el hook de autenticación global
-  const { user, logout, balance, setBalance } = useAuth();
+  // Extraemos balance y setBalance de la única fuente de verdad: el contexto global
+  const {
+    user,
+    logout,
+    balance,
+    setBalance,
+    isBalanceLoaded,
+    setIsBalanceLoaded,
+  } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  // Control de bandera para evitar bucles de peticiones repetitivas
-  const [hasFetched, setHasFetched] = useState(false);
 
   // Función para manejar el cierre de sesión manual con redirección forzada
   const handleLogout = async () => {
@@ -32,37 +37,35 @@ export default function HomeScreen() {
     }
   };
 
-  const fetchBalance = useCallback(async () => {
-    // Si ya tenemos datos o el saldo ya se inicializó, omitimos la llamada HTTP
-    if (hasFetched || balance !== 0) return;
+  const verifyAndLoadBalance = useCallback(async () => {
+    // Si la bandera global dice true, NO SE TOCA LA API.
+    if (isBalanceLoaded) return;
 
     setIsLoading(true);
     try {
       const response = await bankApi.get("/balance");
       // Inyectamos el valor inicial de la API al estado compartido del contexto
       setBalance(response.data.accountBalance);
-      setHasFetched(true);
+      setIsBalanceLoaded(true); // Encendemos la bandera global tras la primera descarga exitosa
     } catch (error: any) {
       if (error.response?.status === 401) {
         handleLogout();
-      } else {
-        Alert.alert("Error", "No se pudo obtener el saldo.");
       }
     } finally {
       setIsLoading(false);
     }
-  }, [balance, hasFetched, logout, setBalance]);
+  }, [isBalanceLoaded, setBalance, setIsBalanceLoaded]);
 
   useEffect(() => {
-    fetchBalance();
-  }, [fetchBalance]);
+    verifyAndLoadBalance();
+  }, []); // Se ejecuta una sola vez al montar la pantalla
 
   // Función auxiliar para dar formato de moneda limpio (Ej: R$ 1.500,50)
   // Ahora forzamos "BRL" por defecto como indica el negocio de la API
-  const formatCurrency = (value: number, currencyCode: string = "BRL") => {
+  const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
-      currency: currencyCode,
+      currency: "BRL",
     }).format(value);
   };
 
