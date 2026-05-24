@@ -3,23 +3,23 @@ import { format } from "date-fns";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Platform,
-    StyleSheet,
-    Switch,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Platform,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { useAuth } from "../../src/hooks/useAuth"; // Importamos useAuth
+import { useAuth } from "../../src/hooks/useAuth";
 import { bankApi } from "../../src/services/api";
 
 export default function TransferScreen() {
   const router = useRouter();
-  // Extraemos balance, setBalance y setHistory del contexto global
-  const { balance, setBalance, setHistory } = useAuth();
+  // Extraer 'history' para poder escanear los nombres existentes
+  const { balance, setBalance, history, setHistory } = useAuth();
 
   const [value, setValue] = useState("");
   const [document, setDocument] = useState("");
@@ -109,11 +109,16 @@ export default function TransferScreen() {
 
       console.log("Status Code recibido:", response.status);
 
+      // Buscar si el destinatario ya existe en el historial cargado para clonar su nombre
+      const existingTx = history.find((tx) => tx.payeer?.document === document);
+      const resolvedName =
+        existingTx?.payeer?.name || `Destinatario (Doc: ${document})`;
+
       // Modificaciones locales reactivas si la petición es exitosa
       // 1. Reducir el balance local de forma síncrona
       setBalance((prevBalance) => prevBalance - numericValue);
 
-      // 2. Insertar el nuevo movimiento simulado al tope de la lista del historial
+      // 2. Insertar el nuevo movimiento simulado al tope de la lista usando el nombre resuelto
       setHistory((prevHistory) => [
         {
           value: numericValue,
@@ -121,7 +126,7 @@ export default function TransferScreen() {
           currency: "BRL",
           payeer: {
             document: document,
-            name: "Transferencia Realizada", // Etiqueta identificadora local
+            name: resolvedName, // Nombre dinámico no quemado
           },
         },
         ...prevHistory,
