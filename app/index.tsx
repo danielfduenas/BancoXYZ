@@ -38,7 +38,7 @@ export default function LoginScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>BancoXYZ</Text>
-      <Text style={styles.subtitle}>Banca Móvil</Text>
+      <Text style={styles.subtitle}>¡Bienvenido a tu Banca Móvil!</Text>
 
       <TextInput
         style={styles.input}
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "bold",
     textAlign: "center",
-    color: "#1a1a1a",
+    color: "#0052cc",
   },
   subtitle: {
     fontSize: 18,
