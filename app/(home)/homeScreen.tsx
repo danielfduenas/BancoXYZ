@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -100,7 +101,11 @@ export default function HomeScreen() {
           style={styles.actionButton}
           onPress={() => router.push("/transferScreen" as any)}
         >
-          <Text style={styles.actionIcon}></Text>
+          <Image
+            source={require("../../src/assets/images/home-transfer.png")}
+            style={styles.actionIconImage}
+            resizeMode="contain"
+          />
           <Text style={styles.actionText}>Enviar Dinero</Text>
         </TouchableOpacity>
 
@@ -108,7 +113,11 @@ export default function HomeScreen() {
           style={[styles.actionButton, styles.actionButtonSecondary]}
           onPress={() => router.push("/historyScreen" as any)}
         >
-          <Text style={styles.actionIcon}></Text>
+          <Image
+            source={require("../../src/assets/images/home-history.png")}
+            style={styles.actionIconImage}
+            resizeMode="contain"
+          />
           <Text style={styles.actionText}>Ver Historial</Text>
         </TouchableOpacity>
       </View>
@@ -181,7 +190,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: "#1a1a1a",
-    marginBottom: 16,
+    marginVertical: 20,
   },
   actionsContainer: {
     flexDirection: "row",
@@ -204,6 +213,11 @@ const styles = StyleSheet.create({
   },
   actionIcon: {
     fontSize: 24,
+    marginBottom: 8,
+  },
+  actionIconImage: {
+    width: 36,
+    height: 36,
     marginBottom: 8,
   },
   actionText: {

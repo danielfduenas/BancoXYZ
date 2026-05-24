@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Image,
   Platform,
   StyleSheet,
   Text,
@@ -149,52 +150,67 @@ export default function HistoryScreen() {
       <View style={styles.filterContainer}>
         <Text style={styles.filterTitle}>Filtros Avanzados:</Text>
 
-        <TextInput
-          style={styles.filterInput}
-          placeholder="Buscar por nombre..."
-          value={searchName}
-          onChangeText={setSearchName}
-        />
+        <View style={styles.rowText}>
+          <View style={styles.columnHeader}>
+            <Text style={styles.filterTitle}>Nombre</Text>
+          </View>
+          <View style={styles.columnHeader}>
+            <Text style={styles.filterTitle}>Monto</Text>
+          </View>
+        </View>
 
-        {/* Fila de Rangos de Montos */}
         <View style={styles.rowFilters}>
+          {/* Fila de filtro por Nombre - 50% */}
+          <TextInput
+            style={[styles.filterInput, { flex: 2, marginRight: 8 }]}
+            placeholder="Buscar por nombre"
+            value={searchName}
+            onChangeText={setSearchName}
+          />
+          {/* Fila de Rangos de Montos */}
           <TextInput
             style={[styles.filterInput, { flex: 1, marginRight: 8 }]}
-            placeholder="Monto mínimo..."
+            placeholder="mín."
             value={minPrice}
             onChangeText={setMinPrice}
             keyboardType="numeric"
           />
           <TextInput
             style={[styles.filterInput, { flex: 1 }]}
-            placeholder="Monto máximo..."
+            placeholder="máx."
             value={maxPrice}
             onChangeText={setMaxPrice}
             keyboardType="numeric"
           />
+        </View>
 
-          {/* Fila del Selector de Fecha Dinámico */}
+        <Text style={styles.filterTitle}>Fecha</Text>
+        {/* Fila del Selector de Fecha Dinámico */}
+        <View style={styles.rowFilters}>
           <TouchableOpacity
             style={[
               styles.dateSelectorButton,
-              { flex: 3, marginRight: selectedDate ? 8 : 0 },
+              { flex: 10, marginRight: selectedDate ? 8 : 0 },
             ]}
             onPress={() => setShowDatePicker(true)}
           >
             <Text style={styles.dateSelectorText}>
               {selectedDate
                 ? format(selectedDate, "dd/MM/yyyy")
-                : "Filtrar por fecha"}
+                : "Buscar por fecha"}
             </Text>
           </TouchableOpacity>
-
           {/* Botón condicional para eliminar el filtro de fecha */}
           {selectedDate && (
             <TouchableOpacity
               style={styles.clearDateButton}
               onPress={() => setSelectedDate(null)}
             >
-              <Text style={styles.clearDateText}>Limpiar</Text>
+              <Image
+                source={require("../../src/assets/images/history-trash.png")}
+                style={styles.actionIconImage}
+                resizeMode="contain"
+              />
             </TouchableOpacity>
           )}
         </View>
@@ -261,6 +277,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#1a1a1a",
   },
+  rowText: {
+    flexDirection: "row",
+    marginBottom: 4,
+  },
+  columnHeader: {
+    flex: 1,
+    alignItems: "flex-start",
+  },
   rowFilters: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -275,7 +299,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 12,
     marginBottom: 4,
-    marginLeft: 8,
   },
   dateSelectorText: {
     fontSize: 14,
@@ -351,5 +374,9 @@ const styles = StyleSheet.create({
     color: "#888",
     marginTop: 40,
     fontSize: 14,
+  },
+  actionIconImage: {
+    width: 25,
+    height: 25,
   },
 });

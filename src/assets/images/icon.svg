@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 100" width="100%" height="auto">
+  <g transform="translate(10, 10)">
+    <path d="M 10 10 L 35 10 L 55 50 L 35 80 L 10 80 L 30 50 Z" fill="#a5c5f5" />
+    <path d="M 32 10 L 57 10 L 77 50 L 57 80 L 32 80 L 52 50 Z" fill="#0052cc" />
+    <path d="M 54 10 L 79 10 L 99 50 L 79 80 L 54 80 L 74 50 Z" fill="#de350b" />
+  </g>
+
+  <text x="130" y="58" font-family="System, sans-serif" font-size="34" font-weight="900" fill="#1a1a1a" letter-spacing="1">
+    Banco<tspan fill="#0052cc">XYZ</tspan>
+  </text>
+  
+  <text x="132" y="78" font-family="System, sans-serif" font-size="12" font-weight="600" fill="#666" letter-spacing="2">
+    BANCA MÓVIL
+  </text>
+</svg>

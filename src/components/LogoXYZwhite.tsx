@@ -1,6 +1,6 @@
 // src/components/LogoXYZ.tsx
 import React from "react";
-import Svg, { G, Path, Text, TSpan } from "react-native-svg";
+import Svg, { G, Path } from "react-native-svg";
 
 interface LogoXYZProps {
   width?: number | string;
@@ -28,30 +28,6 @@ export default function LogoXYZ({ width = "100%", height = 80 }: LogoXYZProps) {
           fill="#de350b"
         />
       </G>
-
-      {/* LOGOTIPO: Texto tipográfico integrado de alta resolución */}
-      <Text
-        x="130"
-        y="58"
-        fontSize="34"
-        fontWeight="900"
-        fill="#fff"
-        letterSpacing="1"
-      >
-        Banco<TSpan fill="#a5c5f5">XYZ</TSpan>
-      </Text>
-
-      {/* Slogan institucional inferior */}
-      <Text
-        x="132"
-        y="78"
-        fontSize="12"
-        fontWeight="600"
-        fill="#fff"
-        letterSpacing="2"
-      >
-        BANCA MÓVIL
-      </Text>
     </Svg>
   );
 }

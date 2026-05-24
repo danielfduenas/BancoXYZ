@@ -16,10 +16,11 @@ export default function HomeLayout() {
           headerTintColor: "#fff",
           headerTitleStyle: {
             fontWeight: "bold",
+            fontSize: 16,
           },
           headerRight: () => (
             <View style={styles.headerLogoContainer}>
-              <LogoXYZ height={50} width={200} />
+              <LogoXYZ height={50} width={150} />
             </View>
           ),
         }}
@@ -42,6 +43,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#0052cc",
+    paddingTop: 10,
   },
   headerLogoContainer: {
     width: 160,
@@ -50,6 +52,6 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     position: "absolute",
     left: "50%",
-    transform: [{ translateX: -130 }],
+    transform: [{ translateX: -30 }],
   },
 });
